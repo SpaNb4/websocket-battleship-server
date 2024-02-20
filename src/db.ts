@@ -1,7 +1,6 @@
 export interface User {
   index: string;
   name: string;
-  isReady: boolean;
 }
 
 export interface Winners {

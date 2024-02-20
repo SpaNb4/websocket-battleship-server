@@ -98,7 +98,7 @@ const parseData = (data: any) => {
 const registerUser = (ws: WebSocket, data: any, userId: string) => {
   const { name } = data;
 
-  const newUser: User = { name, index: userId, isReady: false };
+  const newUser: User = { name, index: userId };
   users.push(newUser);
 
   const response: RegistrationResponse = {
@@ -293,7 +293,6 @@ const setUserReady = (userId: string) => {
 
   const updatedUser: User = {
     ...(rooms.find((room) => room.roomId === roomId)?.roomUsers[userIndex!] as User),
-    isReady: true,
   };
 
   rooms.find((room) => room.roomId === roomId)!.roomUsers[userIndex!] = updatedUser;
