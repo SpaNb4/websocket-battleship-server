@@ -6,7 +6,7 @@ export interface User {
 
 export interface Winners {
   name: string;
-  winds: number;
+  wins: number;
 }
 
 export interface Rooms {
@@ -14,7 +14,7 @@ export interface Rooms {
   roomUsers: User[];
 }
 
-interface ShipPosition {
+export interface Ship {
   position: {
     x: number;
     y: number;
@@ -25,32 +25,39 @@ interface ShipPosition {
   type: 'small' | 'medium' | 'large' | 'huge';
 }
 
-export interface Ships {
+export interface Player {
   userId: string;
-  shipPositions: ShipPosition[];
+  ships: Ship[];
+}
+
+export interface Game {
+  gameId: string;
+  players: Player[];
+  turn: string;
+  lastAttackStatus: string | null;
 }
 
 export const winners: Winners[] = [];
 
-// Store passwords?
+// TODO Store passwords?
 export const users: User[] = [];
 
 export const rooms: Rooms[] = [];
 
-export const ships: Ships[] = [];
+export const games: Game[] = [];
 
-let currentTurn: User | null = null;
+// let currentTurn: User | null = null;
 
-export const getCurrentTurn = () => currentTurn;
+// export const getCurrentTurn = () => currentTurn;
 
-export const setCurrentTurn = (user: User) => {
-  currentTurn = user;
-};
+// export const setCurrentTurn = (user: User) => {
+//   currentTurn = user;
+// };
 
-let lastAttackStatus: string = '';
+// let lastAttackStatus: string = '';
 
-export const getLastAttackStatus = () => lastAttackStatus;
+// export const getLastAttackStatus = () => lastAttackStatus;
 
-export const setLastAttackStatus = (status: string) => {
-  lastAttackStatus = status;
-};
+// export const setLastAttackStatus = (status: string) => {
+//   lastAttackStatus = status;
+// };
