@@ -93,7 +93,7 @@ export const isGameReady = (userId: string) => {
 };
 
 export const attack = (data: any) => {
-  const { x = Math.floor(Math.random() * 10), y = Math.floor(Math.random() * 10), indexPlayer } = data;
+  const { x = Math.floor(Math.random() * 10), y = Math.floor(Math.random() * 10), indexPlayer = 'BOT_ID' } = data;
 
   const attackStatus = gameService.getAttackStatus(x, y, indexPlayer);
   const game = gameService.getGameByPlayerId(indexPlayer);
@@ -145,8 +145,11 @@ export const switchTurn = (userId: string) => {
 
   if (lastAttackStatus === 'shot' || lastAttackStatus === 'killed') {
     game.turn = userId;
-  } else {
+  } else if (lastAttackStatus === 'miss') {
     game.turn = enemyPlayer?.userId;
+  } else {
+    // If it's the first turn, the first player to set the ships is the first to play
+    game.turn = userId;
   }
 
   const response = {

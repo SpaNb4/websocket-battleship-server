@@ -8,3 +8,5 @@ export interface Ship {
   healthPoints: number;
   type: 'small' | 'medium' | 'large' | 'huge';
 }
+
+export type ShipWithoutHealth = Omit<Ship, 'healthPoints'>;

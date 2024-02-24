@@ -1,4 +1,6 @@
 import { WebSocket } from 'ws';
+import { createBot } from '../bot/bot';
+import { getPredefinedField } from '../bot/fields';
 import {
   attack,
   checkIfGameEnded,
@@ -18,8 +20,11 @@ import {
 } from '../controllers/roomController';
 import { registerUser } from '../controllers/userController';
 import { getAllWinners } from '../controllers/winnerController';
+import * as gameService from '../services/gameService';
+import * as roomService from '../services/roomService';
+import * as userService from '../services/userService';
 
-type Command = 'reg' | 'create_room' | 'add_user_to_room' | 'add_ships' | 'randomAttack' | 'attack';
+type Command = 'reg' | 'create_room' | 'add_user_to_room' | 'add_ships' | 'randomAttack' | 'attack' | 'single_play';
 
 export const handleCommands = (ws: WebSocket, command: Command, data: any, userId: string) => {
   switch (command) {
@@ -50,7 +55,6 @@ export const handleCommands = (ws: WebSocket, command: Command, data: any, userI
 
       if (isGameReady(userId)) {
         startGame(userId);
-        // First to set the ships is the first to play
         switchTurn(userId);
       }
       break;
@@ -71,6 +75,35 @@ export const handleCommands = (ws: WebSocket, command: Command, data: any, userI
         // TODO remove game if it's ended?
         checkIfGameEnded(data);
       }
+      break;
+
+    case 'single_play':
+      createBot();
+      userService.createUser({ name: 'BOT_ID', index: 'BOT_ID', hash: 'BOT_HASH' });
+      createRoomWithUser(userId);
+
+      const room = roomService.getRoomByUserId(userId);
+
+      if (!room) {
+        return;
+      }
+
+      addUserToRoom({ indexRoom: room.roomId }, 'BOT_ID');
+
+      createGame(userId);
+
+      removeRoomById(room.roomId);
+      getAllRooms();
+
+      const game = gameService.getGameByPlayerId(userId);
+
+      if (!game) {
+        return;
+      }
+
+      const ships = getPredefinedField();
+
+      setPlayerShips({ ships, gameId: game.gameId }, 'BOT_ID');
       break;
   }
 };

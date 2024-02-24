@@ -1,5 +1,6 @@
 import { WebSocket } from 'ws';
 import { getGameByPlayerId } from '../services/gameService';
+import { Ship } from '../models/ship';
 
 export const parseCommand = (parsedData: any) => {
   return parsedData.type;
@@ -24,10 +25,8 @@ export const broadcastToAllInGame = (clients: Set<WebSocket>, messagesForTwoPlay
 
       if (game?.gameId === gameId) {
         if (client.id === game.players[0].userId) {
-          console.log('broadcastToAllInGame', messagesForTwoPlayers[0]);
           client.send(JSON.stringify(messagesForTwoPlayers[0]));
         } else {
-          console.log('broadcastToAllInGame', messagesForTwoPlayers[1]);
           client.send(JSON.stringify(messagesForTwoPlayers[1]));
         }
       }

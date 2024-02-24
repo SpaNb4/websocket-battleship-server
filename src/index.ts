@@ -29,8 +29,10 @@ wss.on('connection', (ws: WebSocket) => {
 
   ws.on('error', console.error);
 
-  ws.on('message', (rawData: string) => {
-    const parsedData = JSON.parse(rawData);
+  ws.on('message', (message: string) => {
+    const parsedData = JSON.parse(message);
+
+    // logReceivedData(rawData)
     // console.log('received: ', parsedData);
 
     const command = parseCommand(parsedData);
