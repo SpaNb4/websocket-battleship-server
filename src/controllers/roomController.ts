@@ -16,15 +16,16 @@ export const getAllRooms = () => {
   broadcastToAll(wss.clients, response);
 };
 
-export const removeRoom = (roomId: string) => {
+export const removeRoomById = (roomId: string) => {
   roomService.removeRoomById(roomId);
 };
 
-export const isUserInRoom = (userId: string, roomId: string) => {
-  const room = roomService.getRoomByUserId(userId);
-  const isSameRoom = room?.roomId === roomId;
+export const removeRoomByUserId = (userId: string) => {
+  roomService.removeRoomByUserId(userId);
+};
 
-  if (isSameRoom) {
+export const isUserInRoom = (userId: string, roomId: string) => {
+  if (roomService.isUserInRoom(userId, roomId)) {
     console.log('You are already in this room');
     return true;
   }

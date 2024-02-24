@@ -1,7 +1,5 @@
-import { get } from 'http';
 import { db } from '../db/db';
 import { Game } from '../models/game';
-import { Player } from '../models/player';
 import { Ship } from '../models/ship';
 
 export const getGameById = (gameId: string) => {
@@ -20,14 +18,24 @@ export const removeGameById = (gameId: string) => {
   }
 };
 
-export const addPlayerToGame = (gameId: string, player: Player) => {
+export const removeGameByUserId = (userId: string) => {
+  const game = getGameByPlayerId(userId);
+
+  if (!game) {
+    return;
+  }
+
+  removeGameById(game.gameId);
+};
+
+export const getPlayerById = (userId: string, gameId: string) => {
   const game = getGameById(gameId);
 
   if (!game) {
     return;
   }
 
-  game.players.push(player);
+  return game.players.find((player) => player.userId === userId);
 };
 
 export const getGameByPlayerId = (userId: string) => {
@@ -41,7 +49,7 @@ export const isGameReady = (userId: string) => {
     return false;
   }
 
-  if (game.players.length === 2) {
+  if (game.players.every((player) => player.ships.length)) {
     return true;
   }
 
@@ -111,7 +119,7 @@ export const getHitShip = (x: number, y: number, enemyShips: Ship[]) => {
 
 // TODO remove killed ship from array?
 export const markKilledShip = (ship: Ship, userId: string) => {
-  const result = [];
+  const result: any[] = [];
 
   if (ship.direction) {
     for (let y = ship.position.y; y < ship.position.y + ship.length; y++) {
@@ -147,7 +155,7 @@ export const markKilledShip = (ship: Ship, userId: string) => {
 };
 
 export const shootAroundShip = (ship: Ship, userId: string) => {
-  const result = [];
+  const result: any[] = [];
 
   if (ship.direction) {
     for (let x = ship.position.x - 1; x <= ship.position.x + 1; x++)
@@ -209,8 +217,4 @@ export const getWinner = (gameId: string) => {
   const winner = game.players.find((player) => player.userId !== losingPlayer?.userId);
 
   return winner;
-
-  // db.games.find((game) =>
-  // game.players.find((player) => player.userId === userId)!.ships.every((ship) => ship.healthPoints === 0)
-  // );
 };

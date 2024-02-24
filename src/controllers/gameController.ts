@@ -1,73 +1,91 @@
 import { randomUUID as uuidv4 } from 'crypto';
-import { WebSocket } from 'ws';
 import { wss } from '../index';
 import { Game } from '../models/game';
-import { Player } from '../models/player';
 import * as gameService from '../services/gameService';
 import * as roomService from '../services/roomService';
-import { broadcastToAll } from '../utils/utils';
+import { broadcastToAll, broadcastToAllInGame } from '../utils/utils';
 import { addWinner } from './winnerController';
 
 export const createGame = (userId: string) => {
-  const roomUsers = roomService.getRoomByUserId(userId)?.roomUsers;
+  const userRooms = roomService.getRoomsByUserId(userId);
 
-  if (!roomUsers) {
+  if (!userRooms) {
     return;
   }
 
+  const roomWithTwoUsers = userRooms.find((room) => room.roomUsers.length === 2);
+
+  if (!roomWithTwoUsers) {
+    return;
+  }
+
+  const roomUsers = roomWithTwoUsers.roomUsers;
+
   const gameId = uuidv4();
+  const players = roomUsers.map((user) => ({ userId: user.index, ships: [] }));
 
   const newGame: Game = {
     gameId,
-    players: [],
-    turn: roomUsers![0].index,
+    players,
+    turn: roomUsers[0].index,
     lastAttackStatus: null,
   };
 
   gameService.createGame(newGame);
 
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN && roomUsers?.find((user) => user.index === (client as any).id)) {
-      const response = {
-        type: 'create_game',
-        data: JSON.stringify({ idGame: gameId, idPlayer: (client as any).id }),
-        id: 0,
-      };
+  const responses: any[] = [];
 
-      client.send(JSON.stringify(response));
-    }
-  });
+  for (let i = 0; i < players.length; i++) {
+    const response = {
+      type: 'create_game',
+      data: JSON.stringify({ idGame: gameId, idPlayer: players[i].userId }),
+      id: 0,
+    };
+
+    responses.push(response);
+  }
+
+  broadcastToAllInGame(wss.clients, responses, gameId);
 };
 
 export const startGame = (userId: string) => {
   const game = gameService.getGameByPlayerId(userId);
 
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN && game?.players.find((player) => player.userId === (client as any).id)) {
-      const response = {
-        type: 'start_game',
-        data: JSON.stringify({
-          ships: game.players.find((player) => player.userId === (client as any).id)?.ships,
-          currentPlayerIndex: (client as any).id,
-        }),
-        id: 0,
-      };
+  if (!game) {
+    return;
+  }
 
-      client.send(JSON.stringify(response));
-    }
-  });
+  const responses: any[] = [];
+
+  for (let i = 0; i < game.players.length; i++) {
+    const response = {
+      type: 'start_game',
+      data: JSON.stringify({
+        ships: game.players[i].ships,
+        currentPlayerIndex: game.players[i].userId,
+      }),
+      id: 0,
+    };
+
+    responses.push(response);
+  }
+
+  broadcastToAllInGame(wss.clients, responses, game?.gameId);
 };
 
 export const setPlayerShips = (data: any, userId: string) => {
   const { ships: shipPositions, gameId } = data;
 
-  const player: Player = {
-    userId,
-    // Add healthPoints to each ship to keep track of their health
-    ships: shipPositions.map((ship: any) => ({ ...ship, healthPoints: ship.length })),
-  };
+  const player = gameService.getPlayerById(userId, gameId);
 
-  gameService.addPlayerToGame(gameId, player);
+  if (!player) {
+    return;
+  }
+
+  // Add healthPoints to each ship to keep track of their health
+  const ships = shipPositions.map((ship: any) => ({ ...ship, healthPoints: ship.length }));
+
+  player.ships = ships;
 };
 
 export const isGameReady = (userId: string) => {
@@ -170,4 +188,12 @@ export const isPlayerTurn = (userId: string) => {
   }
 
   return true;
+};
+
+export const removeGameById = (gameId: string) => {
+  gameService.removeGameById(gameId);
+};
+
+export const removeGameByUserId = (userId: string) => {
+  gameService.removeGameByUserId(userId);
 };

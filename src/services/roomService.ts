@@ -18,6 +18,17 @@ export const getRoomByUserId = (userId: string) => {
   return db.rooms.find((room) => room.roomUsers.find((user) => user.index === userId));
 };
 
+export const isUserInRoom = (userId: string, roomId: string) => {
+  const room = getRoomByUserId(userId);
+  const isSameRoom = room?.roomId === roomId;
+
+  return isSameRoom;
+};
+
+export const getRoomsByUserId = (userId: string) => {
+  return db.rooms.filter((room) => room.roomUsers.find((user) => user.index === userId));
+};
+
 export const removeRoomById = (roomId: string) => {
   const indexForRemove = db.rooms.findIndex((room) => room.roomId === roomId);
 

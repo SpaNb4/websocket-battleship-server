@@ -1,4 +1,5 @@
 import { WebSocket } from 'ws';
+import { getGameByPlayerId } from '../services/gameService';
 
 export const parseCommand = (parsedData: any) => {
   return parsedData.type;
@@ -16,8 +17,24 @@ export const broadcastToAll = (clients: Set<WebSocket>, message: any) => {
   });
 };
 
+export const broadcastToAllInGame = (clients: Set<WebSocket>, messagesForTwoPlayers: any[], gameId: string) => {
+  clients.forEach((client: any) => {
+    if (client.readyState === WebSocket.OPEN) {
+      const game = getGameByPlayerId(client.id);
+
+      if (game?.gameId === gameId) {
+        if (client.id === game.players[0].userId) {
+          console.log('broadcastToAllInGame', messagesForTwoPlayers[0]);
+          client.send(JSON.stringify(messagesForTwoPlayers[0]));
+        } else {
+          console.log('broadcastToAllInGame', messagesForTwoPlayers[1]);
+          client.send(JSON.stringify(messagesForTwoPlayers[1]));
+        }
+      }
+    }
+  });
+};
+
 export const sendResponse = (ws: WebSocket, data: any) => {
   ws.send(JSON.stringify(data));
 };
-
-// TODO add another function that broadcast messages not to all clients but to all clients in the game

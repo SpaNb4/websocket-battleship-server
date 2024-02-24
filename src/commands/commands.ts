@@ -11,10 +11,10 @@ import {
 } from '../controllers/gameController';
 import {
   addUserToRoom,
-  isUserInRoom,
   createRoomWithUser,
   getAllRooms,
-  removeRoom,
+  isUserInRoom,
+  removeRoomById,
 } from '../controllers/roomController';
 import { registerUser } from '../controllers/userController';
 import { getAllWinners } from '../controllers/winnerController';
@@ -42,7 +42,7 @@ export const handleCommands = (ws: WebSocket, command: Command, data: any, userI
       // When two players are in the room, start the game and remove the room from the list
       // and then send updated rooms to all clients
       createGame(userId);
-      removeRoom(data.indexRoom);
+      removeRoomById(data.indexRoom);
       getAllRooms();
       break;
     case 'add_ships':
@@ -59,6 +59,7 @@ export const handleCommands = (ws: WebSocket, command: Command, data: any, userI
       if (isPlayerTurn(userId)) {
         attack(data);
         switchTurn(userId);
+        // TODO remove game if it's ended?
         checkIfGameEnded(userId);
       }
       break;
@@ -67,6 +68,7 @@ export const handleCommands = (ws: WebSocket, command: Command, data: any, userI
       if (isPlayerTurn(userId)) {
         attack(data);
         switchTurn(userId);
+        // TODO remove game if it's ended?
         checkIfGameEnded(data);
       }
       break;
