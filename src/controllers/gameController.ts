@@ -3,6 +3,9 @@ import { wss } from '../index';
 import { Game } from '../models/game';
 import * as gameService from '../services/gameService';
 import * as roomService from '../services/roomService';
+import { Command } from '../types/command';
+import { AttackData, PlayerShipsData, RandomAttackData } from '../types/request';
+import { AttackResponse, CreateGameResponse, FinishResponse, StartGameResponse, TurnResponse } from '../types/response';
 import { broadcastToAll, broadcastToAllInGame } from '../utils/utils';
 import { addWinner } from './winnerController';
 
@@ -33,11 +36,11 @@ export const createGame = (userId: string) => {
 
   gameService.createGame(newGame);
 
-  const responses: any[] = [];
+  const responses: CreateGameResponse[] = [];
 
   for (let i = 0; i < players.length; i++) {
-    const response = {
-      type: 'create_game',
+    const response: CreateGameResponse = {
+      type: Command.CreateGame,
       data: JSON.stringify({ idGame: gameId, idPlayer: players[i].userId }),
       id: 0,
     };
@@ -55,11 +58,11 @@ export const startGame = (userId: string) => {
     return;
   }
 
-  const responses: any[] = [];
+  const responses: StartGameResponse[] = [];
 
   for (let i = 0; i < game.players.length; i++) {
-    const response = {
-      type: 'start_game',
+    const response: StartGameResponse = {
+      type: Command.StartGame,
       data: JSON.stringify({
         ships: game.players[i].ships,
         currentPlayerIndex: game.players[i].userId,
@@ -73,7 +76,7 @@ export const startGame = (userId: string) => {
   broadcastToAllInGame(wss.clients, responses, game?.gameId);
 };
 
-export const setPlayerShips = (data: any, userId: string) => {
+export const setPlayerShips = (data: PlayerShipsData, userId: string) => {
   const { ships: shipPositions, gameId } = data;
 
   const player = gameService.getPlayerById(userId, gameId);
@@ -83,7 +86,7 @@ export const setPlayerShips = (data: any, userId: string) => {
   }
 
   // Add healthPoints to each ship to keep track of their health
-  const ships = shipPositions.map((ship: any) => ({ ...ship, healthPoints: ship.length }));
+  const ships = shipPositions.map((ship) => ({ ...ship, healthPoints: ship.length }));
 
   player.ships = ships;
 };
@@ -92,8 +95,12 @@ export const isGameReady = (userId: string) => {
   return gameService.isGameReady(userId);
 };
 
-export const attack = (data: any) => {
-  const { x = Math.floor(Math.random() * 10), y = Math.floor(Math.random() * 10), indexPlayer = 'BOT_ID' } = data;
+export const attack = (data: AttackData | RandomAttackData) => {
+  const {
+    x = Math.floor(Math.random() * 10),
+    y = Math.floor(Math.random() * 10),
+    indexPlayer = 'BOT_ID',
+  } = data as AttackData;
 
   const attackStatus = gameService.getAttackStatus(x, y, indexPlayer);
   const game = gameService.getGameByPlayerId(indexPlayer);
@@ -120,8 +127,8 @@ export const attack = (data: any) => {
 
   game.lastAttackStatus = attackStatus;
 
-  const response = {
-    type: 'attack',
+  const response: AttackResponse = {
+    type: Command.Attack,
     data: JSON.stringify({
       position: { x, y },
       currentPlayer: indexPlayer,
@@ -152,8 +159,8 @@ export const switchTurn = (userId: string) => {
     game.turn = userId;
   }
 
-  const response = {
-    type: 'turn',
+  const response: TurnResponse = {
+    type: Command.Turn,
     data: JSON.stringify({
       currentPlayer: game.turn,
     }),
@@ -163,14 +170,14 @@ export const switchTurn = (userId: string) => {
   broadcastToAll(wss.clients, response);
 };
 
-export const checkIfGameEnded = (data: any) => {
+export const checkIfGameEnded = (data: AttackData | RandomAttackData) => {
   const { gameId } = data;
 
   const winner = gameService.getWinner(gameId);
 
   if (winner) {
-    const response = {
-      type: 'finish',
+    const response: FinishResponse = {
+      type: Command.Finish,
       data: JSON.stringify({
         winPlayer: winner.userId,
       }),

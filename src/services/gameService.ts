@@ -1,6 +1,8 @@
 import { db } from '../db/db';
 import { Game } from '../models/game';
 import { Ship } from '../models/ship';
+import { Command } from '../types/command';
+import { AttackResponse } from '../types/response';
 
 export const getGameById = (gameId: string) => {
   return db.games.find((game) => game.gameId === gameId);
@@ -119,12 +121,12 @@ export const getHitShip = (x: number, y: number, enemyShips: Ship[]) => {
 
 // TODO remove killed ship from array?
 export const markKilledShip = (ship: Ship, userId: string) => {
-  const result: any[] = [];
+  const result: AttackResponse[] = [];
 
   if (ship.direction) {
     for (let y = ship.position.y; y < ship.position.y + ship.length; y++) {
-      const response = {
-        type: 'attack',
+      const response: AttackResponse = {
+        type: Command.Attack,
         data: JSON.stringify({
           position: { x: ship.position.x, y },
           currentPlayer: userId,
@@ -137,8 +139,8 @@ export const markKilledShip = (ship: Ship, userId: string) => {
     }
   } else {
     for (let x = ship.position.x; x < ship.position.x + ship.length; x++) {
-      const response = {
-        type: 'attack',
+      const response: AttackResponse = {
+        type: Command.Attack,
         data: JSON.stringify({
           position: { x, y: ship.position.y },
           currentPlayer: userId,
@@ -155,7 +157,7 @@ export const markKilledShip = (ship: Ship, userId: string) => {
 };
 
 export const shootAroundShip = (ship: Ship, userId: string) => {
-  const result: any[] = [];
+  const result: AttackResponse[] = [];
 
   if (ship.direction) {
     for (let x = ship.position.x - 1; x <= ship.position.x + 1; x++)
@@ -163,8 +165,8 @@ export const shootAroundShip = (ship: Ship, userId: string) => {
         if (x === ship.position.x && y >= ship.position.y && y < ship.position.y + ship.length) {
           continue;
         }
-        const response = {
-          type: 'attack',
+        const response: AttackResponse = {
+          type: Command.Attack,
           data: JSON.stringify({
             position: { x, y },
             currentPlayer: userId,
@@ -183,8 +185,8 @@ export const shootAroundShip = (ship: Ship, userId: string) => {
             continue;
           }
 
-          const response = {
-            type: 'attack',
+          const response: AttackResponse = {
+            type: Command.Attack,
             data: JSON.stringify({
               position: { x, y },
               currentPlayer: userId,

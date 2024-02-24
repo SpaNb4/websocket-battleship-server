@@ -1,13 +1,15 @@
 import { wss } from '../index';
-import * as winnerService from '../services/winnerService';
 import * as userService from '../services/userService';
+import * as winnerService from '../services/winnerService';
+import { Command } from '../types/command';
+import { UpdateWinnersResponse } from '../types/response';
 import { broadcastToAll } from '../utils/utils';
 
 export const getAllWinners = () => {
   const winners = winnerService.getAllWinners();
 
-  const response = {
-    type: 'update_winners',
+  const response: UpdateWinnersResponse = {
+    type: Command.UpdateWinners,
     data: JSON.stringify(winners),
     id: 0,
   };
@@ -28,8 +30,8 @@ export const addWinner = (userId: string) => {
 
   const winners = winnerService.getAllWinners();
 
-  const response = {
-    type: 'update_winners',
+  const response: UpdateWinnersResponse = {
+    type: Command.UpdateWinners,
     data: JSON.stringify(winners),
     id: 0,
   };

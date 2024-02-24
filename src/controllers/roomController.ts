@@ -2,13 +2,16 @@ import { randomUUID as uuidv4 } from 'crypto';
 import { wss } from '../index';
 import * as roomService from '../services/roomService';
 import * as userService from '../services/userService';
+import { Command } from '../types/command';
+import { AddUserToRoomData } from '../types/request';
+import { UpdateRoomResponse } from '../types/response';
 import { broadcastToAll } from '../utils/utils';
 
 export const getAllRooms = () => {
   const rooms = roomService.getAllRooms();
 
-  const response = {
-    type: 'update_room',
+  const response: UpdateRoomResponse = {
+    type: Command.UpdateRoom,
     data: JSON.stringify(rooms),
     id: 0,
   };
@@ -54,8 +57,8 @@ export const createRoomWithUser = (userId: string) => {
 
   const rooms = roomService.getAllRooms();
 
-  const response = {
-    type: 'update_room',
+  const response: UpdateRoomResponse = {
+    type: Command.UpdateRoom,
     data: JSON.stringify(rooms),
     id: 0,
   };
@@ -63,7 +66,7 @@ export const createRoomWithUser = (userId: string) => {
   broadcastToAll(wss.clients, response);
 };
 
-export const addUserToRoom = (data: any, userId: string) => {
+export const addUserToRoom = (data: AddUserToRoomData, userId: string) => {
   const { indexRoom } = data;
 
   const user = userService.getUserById(userId);
@@ -79,8 +82,8 @@ export const addUserToRoom = (data: any, userId: string) => {
 
   roomService.removeUserFromOwnRoomOnJoin(indexRoom, userId);
 
-  const response = {
-    type: 'update_room',
+  const response: UpdateRoomResponse = {
+    type: Command.UpdateRoom,
     data: JSON.stringify(rooms),
     id: 0,
   };
