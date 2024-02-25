@@ -100,11 +100,11 @@ export const isGameReady = (userId: string) => {
   return gameService.isGameReady(userId);
 };
 
-export const attack = (data: AttackData | RandomAttackData) => {
+export const attack = (data: AttackData | RandomAttackData, userId: string) => {
   const {
     x = Math.floor(Math.random() * 10),
     y = Math.floor(Math.random() * 10),
-    indexPlayer = 'BOT_ID',
+    indexPlayer = userId,
   } = data as AttackData;
 
   const attackStatus = gameService.getAttackStatus(x, y, indexPlayer);

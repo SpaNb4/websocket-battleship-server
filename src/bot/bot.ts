@@ -1,16 +1,17 @@
-// import { randomUUID as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'crypto';
 import { WebSocket } from 'ws';
 import { handleCommands } from '../commands/commands';
-import { parseCommand, parseData } from '../utils/utils';
+import { Command } from '../types/command';
+import { parseCommand, parseData, sendResponse } from '../utils/utils';
 
 export const createBot = () => {
-  const botWebSocket = new WebSocket('ws://localhost:3000');
+  const botId = uuidv4();
+  const botWebSocket = new WebSocket('ws://localhost:3000', botId);
 
   botWebSocket.on('open', () => {
     console.log('WebSocket connection established for the bot.');
-    botWebSocket.send(JSON.stringify({ type: 'reg_bot' }));
-    // const userId = 'BOT_ID';
-    // (botWebSocket as any).id = userId;
+
+    sendResponse(botWebSocket, { type: Command.RegBot });
 
     botWebSocket.on('message', (message: string) => {
       const parsedData = JSON.parse(message);
@@ -18,7 +19,7 @@ export const createBot = () => {
       const command = parseCommand(parsedData);
       const data = parsedData.data ? parseData(parsedData.data) : null;
 
-      handleCommands(botWebSocket, command, data, 'BOT_ID');
+      handleCommands(botWebSocket, command, data, botId);
     });
   });
 
@@ -29,4 +30,6 @@ export const createBot = () => {
   botWebSocket.on('error', (error) => {
     console.error('WebSocket error:', error);
   });
+
+  return { botId, botWebSocket };
 };

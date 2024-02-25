@@ -2,7 +2,6 @@ import { randomUUID as uuidv4 } from 'crypto';
 import { WebSocket, WebSocketServer } from 'ws';
 import { handleCommands } from './commands/commands';
 import { parseCommand, parseData } from './utils/utils';
-import { Command } from './types/command';
 // import { getAllRooms, removeRoomByUserId } from './controllers/roomController';
 // import { removeGameByUserId } from './services/gameService';
 
@@ -12,7 +11,13 @@ export const wss = new WebSocketServer({
 
 wss.on('connection', (ws: WebSocket) => {
   const userId = uuidv4();
-  (ws as any).id = userId;
+
+  // if it's a bot set the id to bot
+  if (ws.protocol) {
+    (ws as any).id = ws.protocol;
+  } else {
+    (ws as any).id = userId;
+  }
 
   console.log('connected: ', userId);
 
@@ -24,6 +29,9 @@ wss.on('connection', (ws: WebSocket) => {
 
     // // Remove user from game if it's in one
     // removeGameByUserId(userId);
+
+    // User who leaves loses the game
+    // addWinner(userId);
 
     // getAllRooms();
   });
@@ -38,10 +46,6 @@ wss.on('connection', (ws: WebSocket) => {
 
     const command = parseCommand(parsedData);
     const data = parsedData.data ? parseData(parsedData.data) : null;
-
-    if (command === Command.RegBot) {
-      (ws as any).id = 'BOT_ID';
-    }
 
     handleCommands(ws, command, data, userId);
   });

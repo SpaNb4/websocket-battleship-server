@@ -55,9 +55,6 @@ export const handleCommands = (ws: WebSocket, command: Command, data: RequestDat
     case Command.SinglePlay:
       handleSinglePlay(userId);
       break;
-
-    default:
-      handleUnknownCommand(command);
   }
 };
 
@@ -103,7 +100,7 @@ export const handleAddShips = (data: RequestData, userId: string) => {
 
 export const handleRandomAttack = (data: RequestData, userId: string) => {
   if (isRandomAttackData(data) && isPlayerTurn(userId)) {
-    attack(data);
+    attack(data, userId);
     switchTurn(userId);
     checkIfGameEnded(data);
   }
@@ -111,15 +108,16 @@ export const handleRandomAttack = (data: RequestData, userId: string) => {
 
 export const handleAttack = (data: AttackData, userId: string) => {
   if (isPlayerTurn(userId)) {
-    attack(data);
+    attack(data, userId);
     switchTurn(userId);
     checkIfGameEnded(data);
   }
 };
 
 export const handleSinglePlay = (userId: string) => {
-  createBot();
-  userService.createUser({ name: 'BOT_ID', index: 'BOT_ID', hash: 'BOT_HASH' });
+  const { botId } = createBot();
+
+  userService.createUser({ name: 'BOT', index: botId, hash: 'BOT_HASH' });
   createRoomWithUser(userId);
 
   const room = roomService.getRoomByUserId(userId);
@@ -128,7 +126,7 @@ export const handleSinglePlay = (userId: string) => {
     return;
   }
 
-  addUserToRoom({ indexRoom: room.roomId }, 'BOT_ID');
+  addUserToRoom({ indexRoom: room.roomId }, botId);
 
   createGame(userId);
 
@@ -141,7 +139,9 @@ export const handleSinglePlay = (userId: string) => {
     return;
   }
 
-  setPlayerShips({ ships: getPredefinedField(), gameId: game.gameId }, 'BOT_ID');
+  const ships = getPredefinedField();
+
+  setPlayerShips({ ships, gameId: game.gameId }, botId);
 };
 
 export const handleUnknownCommand = (command: Command) => {
