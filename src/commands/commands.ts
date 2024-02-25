@@ -61,6 +61,8 @@ export const handleCommands = (ws: WebSocket, command: Command, data: RequestDat
 export const handleRegistration = (ws: WebSocket, data: RequestData, userId: string) => {
   if (isRegistrationData(data)) {
     registerUser(ws, data, userId);
+
+    // TODO don't send it in case of auth error
     getAllRooms();
     getAllWinners();
   }
@@ -117,7 +119,7 @@ export const handleAttack = (data: AttackData, userId: string) => {
 export const handleSinglePlay = (userId: string) => {
   const { botId } = createBot();
 
-  userService.createUser({ name: 'BOT', index: botId, hash: 'BOT_HASH' });
+  userService.createUser({ name: 'BOT', index: botId, hash: 'BOT_HASH', isLoggedIn: true });
   createRoomWithUser(userId);
 
   const room = roomService.getRoomByUserId(userId);

@@ -15,34 +15,79 @@ export const registerUser = async (ws: WebSocket, data: RegistrationData, userId
   if (user) {
     const isPasswordCorrect = await checkPassword(password, user.hash);
 
-    if (!isPasswordCorrect) {
+    if (isPasswordCorrect && !isUserLoggedIn(user.name)) {
+      const updatedUser: User = { ...user, index: userId, isLoggedIn: true };
+
+      userService.updateUser(user.index, updatedUser);
+
       const response: RegistrationResponse = {
         type: Command.Reg,
         data: JSON.stringify({
-          error: true,
-          errorText: 'Invalid password for the provided username. Please try again.',
+          ...user,
+          error: false,
+          errorText: '',
         }),
         id: 0,
       };
 
       sendResponse(ws, response);
-      return;
+    } else if (isPasswordCorrect && isUserLoggedIn(user.name)) {
+      const response: RegistrationResponse = {
+        type: Command.Reg,
+        data: JSON.stringify({
+          error: true,
+          errorText: 'You are already logged in. Please log out in another tab and try again.',
+        }),
+        id: 0,
+      };
+
+      sendResponse(ws, response);
+    } else if (!isPasswordCorrect) {
+      const response: RegistrationResponse = {
+        type: Command.Reg,
+        data: JSON.stringify({
+          error: true,
+          errorText: 'Sorry, the password you entered is incorrect. Please double-check your password and try again',
+        }),
+        id: 0,
+      };
+
+      sendResponse(ws, response);
     }
+  } else {
+    const hash = await hashPassword(password);
+    const newUser: User = { name, index: userId, hash, isLoggedIn: true };
+    userService.createUser(newUser);
+
+    const response: RegistrationResponse = {
+      type: Command.Reg,
+      data: JSON.stringify({
+        ...newUser,
+        error: false,
+        errorText: '',
+      }),
+      id: 0,
+    };
+
+    sendResponse(ws, response);
+  }
+};
+
+export const isUserLoggedIn = (name: string): boolean => {
+  const user = userService.getUserByName(name);
+
+  if (!user) {
+    return false;
   }
 
-  const hash = await hashPassword(password);
-  const newUser: User = { name, index: userId, hash };
-  userService.createUser(newUser);
+  console.log('user.isLoggedIn', user.isLoggedIn);
+  return user.isLoggedIn;
 
-  const response: RegistrationResponse = {
-    type: Command.Reg,
-    data: JSON.stringify({
-      ...newUser,
-      error: false,
-      errorText: '',
-    }),
-    id: 0,
-  };
+  // wss.clients.forEach((client) => {
+  //   if (client.readyState === WebSocket.OPEN && client === ws) {
+  //     isLoggedIn = true;
+  //   }
+  // });
 
-  sendResponse(ws, response);
+  // return isLoggedIn;
 };

@@ -12,3 +12,18 @@ export const getUserById = (id: string) => {
 export const createUser = (newUser: User) => {
   db.users.push(newUser);
 };
+
+export const updateUser = (userId: string, changes: Partial<User>) => {
+  const indexForUpdate = db.users.findIndex((user) => user.index === userId);
+
+  if (indexForUpdate === -1) {
+    return;
+  }
+
+  const updatedUser = {
+    ...db.users[indexForUpdate],
+    ...changes,
+  };
+
+  db.users[indexForUpdate] = updatedUser;
+};

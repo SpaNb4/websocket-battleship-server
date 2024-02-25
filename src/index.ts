@@ -2,6 +2,7 @@ import { randomUUID as uuidv4 } from 'crypto';
 import { WebSocket, WebSocketServer } from 'ws';
 import { handleCommands } from './commands/commands';
 import { parseCommand, parseData } from './utils/utils';
+import { getUserById, updateUser } from './services/userService';
 // import { getAllRooms, removeRoomByUserId } from './controllers/roomController';
 // import { removeGameByUserId } from './services/gameService';
 
@@ -23,6 +24,8 @@ wss.on('connection', (ws: WebSocket) => {
 
   ws.on('close', () => {
     console.log('disconnected: ', userId);
+
+    updateUser(userId, { isLoggedIn: false });
 
     // // Remove user from room if it's in one
     // removeRoomByUserId(userId);
