@@ -6,7 +6,7 @@ import * as roomService from '../services/roomService';
 import { Command } from '../types/command';
 import { AttackData, PlayerShipsData, RandomAttackData } from '../types/request';
 import { AttackResponse, CreateGameResponse, FinishResponse, StartGameResponse, TurnResponse } from '../types/response';
-import { broadcastToAll, broadcastToAllInGame } from '../utils/utils';
+import { MessagesForTwoPlayers, broadcastToAllInGame } from '../utils/utils';
 import { addWinner } from './winnerController';
 
 export const createGame = (userId: string) => {
@@ -36,19 +36,20 @@ export const createGame = (userId: string) => {
 
   gameService.createGame(newGame);
 
-  const responses: CreateGameResponse[] = [];
-
-  for (let i = 0; i < players.length; i++) {
-    const response: CreateGameResponse = {
+  const response: MessagesForTwoPlayers<CreateGameResponse> = {
+    player1: {
       type: Command.CreateGame,
-      data: JSON.stringify({ idGame: gameId, idPlayer: players[i].userId }),
+      data: JSON.stringify({ idGame: gameId, idPlayer: roomUsers[0].index }),
       id: 0,
-    };
+    },
+    player2: {
+      type: Command.CreateGame,
+      data: JSON.stringify({ idGame: gameId, idPlayer: roomUsers[1].index }),
+      id: 0,
+    },
+  };
 
-    responses.push(response);
-  }
-
-  broadcastToAllInGame(wss.clients, responses, gameId);
+  broadcastToAllInGame(wss.clients, response, gameId);
 };
 
 export const startGame = (userId: string) => {
@@ -58,22 +59,26 @@ export const startGame = (userId: string) => {
     return;
   }
 
-  const responses: StartGameResponse[] = [];
-
-  for (let i = 0; i < game.players.length; i++) {
-    const response: StartGameResponse = {
+  const response: MessagesForTwoPlayers<StartGameResponse> = {
+    player1: {
       type: Command.StartGame,
       data: JSON.stringify({
-        ships: game.players[i].ships,
-        currentPlayerIndex: game.players[i].userId,
+        ships: game.players[0].ships,
+        currentPlayerIndex: game.players[0].userId,
       }),
       id: 0,
-    };
+    },
+    player2: {
+      type: Command.StartGame,
+      data: JSON.stringify({
+        ships: game.players[1].ships,
+        currentPlayerIndex: game.players[1].userId,
+      }),
+      id: 0,
+    },
+  };
 
-    responses.push(response);
-  }
-
-  broadcastToAllInGame(wss.clients, responses, game?.gameId);
+  broadcastToAllInGame(wss.clients, response, game.gameId);
 };
 
 export const setPlayerShips = (data: PlayerShipsData, userId: string) => {
@@ -106,7 +111,7 @@ export const attack = (data: AttackData | RandomAttackData) => {
   const game = gameService.getGameByPlayerId(indexPlayer);
   const enemyShips = gameService.getEnemyShips(indexPlayer);
 
-  if (!enemyShips) {
+  if (!enemyShips || !game) {
     return;
   }
 
@@ -114,10 +119,20 @@ export const attack = (data: AttackData | RandomAttackData) => {
 
   if (attackStatus === 'killed' && hitShip) {
     gameService.markKilledShip(hitShip, indexPlayer).forEach((response) => {
-      broadcastToAll(wss.clients, response);
+      const responseForTwoPlayers: MessagesForTwoPlayers<AttackResponse> = {
+        player1: response,
+        player2: response,
+      };
+
+      broadcastToAllInGame(wss.clients, responseForTwoPlayers, game.gameId);
     });
     gameService.shootAroundShip(hitShip, indexPlayer).forEach((response) => {
-      broadcastToAll(wss.clients, response);
+      const responseForTwoPlayers: MessagesForTwoPlayers<AttackResponse> = {
+        player1: response,
+        player2: response,
+      };
+
+      broadcastToAllInGame(wss.clients, responseForTwoPlayers, game.gameId);
     });
   }
 
@@ -127,17 +142,20 @@ export const attack = (data: AttackData | RandomAttackData) => {
 
   game.lastAttackStatus = attackStatus;
 
-  const response: AttackResponse = {
-    type: Command.Attack,
-    data: JSON.stringify({
-      position: { x, y },
-      currentPlayer: indexPlayer,
-      status: attackStatus,
-    }),
-    id: 0,
+  const response: MessagesForTwoPlayers<AttackResponse> = {
+    player1: {
+      type: Command.Attack,
+      data: JSON.stringify({ position: { x, y }, currentPlayer: indexPlayer, status: attackStatus }),
+      id: 0,
+    },
+    player2: {
+      type: Command.Attack,
+      data: JSON.stringify({ position: { x, y }, currentPlayer: indexPlayer, status: attackStatus }),
+      id: 0,
+    },
   };
 
-  broadcastToAll(wss.clients, response);
+  broadcastToAllInGame(wss.clients, response, game.gameId);
 };
 
 export const switchTurn = (userId: string) => {
@@ -159,15 +177,20 @@ export const switchTurn = (userId: string) => {
     game.turn = userId;
   }
 
-  const response: TurnResponse = {
-    type: Command.Turn,
-    data: JSON.stringify({
-      currentPlayer: game.turn,
-    }),
-    id: 0,
+  const response: MessagesForTwoPlayers<TurnResponse> = {
+    player1: {
+      type: Command.Turn,
+      data: JSON.stringify({ currentPlayer: game.turn }),
+      id: 0,
+    },
+    player2: {
+      type: Command.Turn,
+      data: JSON.stringify({ currentPlayer: game.turn }),
+      id: 0,
+    },
   };
 
-  broadcastToAll(wss.clients, response);
+  broadcastToAllInGame(wss.clients, response, game.gameId);
 };
 
 export const checkIfGameEnded = (data: AttackData | RandomAttackData) => {
@@ -176,15 +199,20 @@ export const checkIfGameEnded = (data: AttackData | RandomAttackData) => {
   const winner = gameService.getWinner(gameId);
 
   if (winner) {
-    const response: FinishResponse = {
-      type: Command.Finish,
-      data: JSON.stringify({
-        winPlayer: winner.userId,
-      }),
-      id: 0,
+    const response: MessagesForTwoPlayers<FinishResponse> = {
+      player1: {
+        type: Command.Finish,
+        data: JSON.stringify({ winPlayer: winner.userId }),
+        id: 0,
+      },
+      player2: {
+        type: Command.Finish,
+        data: JSON.stringify({ winPlayer: winner.userId }),
+        id: 0,
+      },
     };
 
-    broadcastToAll(wss.clients, response);
+    broadcastToAllInGame(wss.clients, response, gameId);
     addWinner(winner.userId);
   }
 };

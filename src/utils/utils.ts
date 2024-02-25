@@ -1,6 +1,5 @@
 import { WebSocket } from 'ws';
 import { getGameByPlayerId } from '../services/gameService';
-import { Ship } from '../models/ship';
 
 export const parseCommand = (parsedData: any) => {
   return parsedData.type;
@@ -18,16 +17,25 @@ export const broadcastToAll = (clients: Set<WebSocket>, message: any) => {
   });
 };
 
-export const broadcastToAllInGame = (clients: Set<WebSocket>, messagesForTwoPlayers: any[], gameId: string) => {
+export interface MessagesForTwoPlayers<T> {
+  player1: T;
+  player2: T;
+}
+
+export const broadcastToAllInGame = <T>(
+  clients: Set<WebSocket>,
+  messagesForTwoPlayers: MessagesForTwoPlayers<T>,
+  gameId: string
+) => {
   clients.forEach((client: any) => {
     if (client.readyState === WebSocket.OPEN) {
       const game = getGameByPlayerId(client.id);
 
       if (game?.gameId === gameId) {
         if (client.id === game.players[0].userId) {
-          client.send(JSON.stringify(messagesForTwoPlayers[0]));
+          client.send(JSON.stringify(messagesForTwoPlayers.player1));
         } else {
-          client.send(JSON.stringify(messagesForTwoPlayers[1]));
+          client.send(JSON.stringify(messagesForTwoPlayers.player2));
         }
       }
     }
