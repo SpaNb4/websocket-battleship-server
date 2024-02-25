@@ -119,7 +119,6 @@ export const getHitShip = (x: number, y: number, enemyShips: Ship[]) => {
   });
 };
 
-// TODO remove killed ship from array?
 export const markKilledShip = (ship: Ship, userId: string) => {
   const result: AttackResponse[] = [];
 

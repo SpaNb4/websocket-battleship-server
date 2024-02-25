@@ -109,7 +109,6 @@ export const handleRandomAttack = (data: RequestData, userId: string) => {
   if (isRandomAttackData(data) && isPlayerTurn(userId)) {
     attack(data);
     switchTurn(userId);
-    // TODO remove game if it's ended?
     checkIfGameEnded(data);
   }
 };
@@ -118,7 +117,6 @@ export const handleAttack = (data: RequestData, userId: string) => {
   if (isAttackData(data) && isPlayerTurn(userId)) {
     attack(data);
     switchTurn(userId);
-    // TODO remove game if it's ended?
     checkIfGameEnded(data);
   }
 };

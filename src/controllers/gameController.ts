@@ -214,6 +214,7 @@ export const checkIfGameEnded = (data: AttackData | RandomAttackData) => {
 
     broadcastToAllInGame(wss.clients, response, gameId);
     addWinner(winner.userId);
+    removeGameById(gameId);
   }
 };
 
