@@ -29,10 +29,14 @@ export const getRoomsByUserId = (userId: string) => {
   return db.rooms.filter((room) => room.roomUsers.find((user) => user.index === userId));
 };
 
+export const getRoomWithTwoUsers = (userRooms: Room[]) => {
+  return userRooms.find((room) => room.roomUsers.length === 2);
+};
+
 export const removeRoomById = (roomId: string) => {
   const indexForRemove = db.rooms.findIndex((room) => room.roomId === roomId);
 
-  if (indexForRemove) {
+  if (indexForRemove !== -1) {
     db.rooms.splice(indexForRemove, 1);
   }
 };
@@ -40,7 +44,7 @@ export const removeRoomById = (roomId: string) => {
 export const removeRoomByUserId = (userId: string) => {
   const indexForRemove = db.rooms.findIndex((room) => room.roomUsers.find((user) => user.index === userId));
 
-  if (indexForRemove) {
+  if (indexForRemove !== -1) {
     db.rooms.splice(indexForRemove, 1);
   }
 };

@@ -15,7 +15,7 @@ export const createGame = (game: Game) => {
 export const removeGameById = (gameId: string) => {
   const indexForRemove = db.games.findIndex((game) => game.gameId === gameId);
 
-  if (indexForRemove) {
+  if (indexForRemove !== -1) {
     db.games.splice(indexForRemove, 1);
   }
 };

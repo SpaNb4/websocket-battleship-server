@@ -16,7 +16,7 @@ export const createGame = (userId: string) => {
     return;
   }
 
-  const roomWithTwoUsers = userRooms.find((room) => room.roomUsers.length === 2);
+  const roomWithTwoUsers = roomService.getRoomWithTwoUsers(userRooms);
 
   if (!roomWithTwoUsers) {
     return;
