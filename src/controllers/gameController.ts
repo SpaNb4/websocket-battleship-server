@@ -8,6 +8,7 @@ import { AttackData, PlayerShipsData, RandomAttackData } from '../types/request'
 import { AttackResponse, CreateGameResponse, FinishResponse, StartGameResponse, TurnResponse } from '../types/response';
 import { MessagesForTwoPlayers, broadcastToAllInGame } from '../utils/utils';
 import { addWinner } from './winnerController';
+import { Player } from '../models/player';
 
 export const createGame = (userId: string) => {
   const userRooms = roomService.getRoomsByUserId(userId);
@@ -25,7 +26,8 @@ export const createGame = (userId: string) => {
   const roomUsers = roomWithTwoUsers.roomUsers;
 
   const gameId = uuidv4();
-  const players = roomUsers.map((user) => ({ userId: user.index, ships: [] }));
+  const targetedCoordinates = new Set<string>();
+  const players: Player[] = roomUsers.map((user) => ({ userId: user.index, ships: [], targetedCoordinates }));
 
   const newGame: Game = {
     gameId,
@@ -112,6 +114,12 @@ export const attack = (data: AttackData | RandomAttackData, userId: string) => {
   const enemyShips = gameService.getEnemyShips(indexPlayer);
 
   if (!enemyShips || !game) {
+    return;
+  }
+
+  if (attackStatus === 'same_target') {
+    game.lastAttackStatus = 'miss';
+
     return;
   }
 

@@ -90,9 +90,23 @@ export const getEnemyShips = (userId: string) => {
 
 export const getAttackStatus = (x: number, y: number, userId: string) => {
   const enemyShips = getEnemyShips(userId);
+  const game = getGameByPlayerId(userId);
 
-  if (!enemyShips) {
+  if (!enemyShips || !game) {
     return 'miss';
+  }
+
+  const coordinatesKey = `${x},${y}`;
+
+  const player = getPlayerById(userId, game.gameId);
+
+  if (!player) {
+    return 'miss';
+  }
+
+  // Check if the coordinates have already been targeted
+  if (player.targetedCoordinates.has(coordinatesKey)) {
+    return 'same_target';
   }
 
   const hitShip = getHitShip(x, y, enemyShips);
@@ -100,8 +114,10 @@ export const getAttackStatus = (x: number, y: number, userId: string) => {
   if (hitShip) {
     hitShip.healthPoints = hitShip.healthPoints - 1;
     if (hitShip.healthPoints) {
+      player.targetedCoordinates.add(coordinatesKey);
       return 'shot';
     } else {
+      player.targetedCoordinates.add(coordinatesKey);
       return 'killed';
     }
   }
