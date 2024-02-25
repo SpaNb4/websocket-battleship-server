@@ -1,5 +1,6 @@
 export enum Command {
   Reg = 'reg',
+  RegBot = 'reg_bot',
   CreateRoom = 'create_room',
   UpdateRoom = 'update_room',
   AddUserToRoom = 'add_user_to_room',

@@ -8,17 +8,17 @@ export const createBot = () => {
 
   botWebSocket.on('open', () => {
     console.log('WebSocket connection established for the bot.');
-
-    const userId = 'BOT_ID';
-    (botWebSocket as any).id = userId;
+    botWebSocket.send(JSON.stringify({ type: 'reg_bot' }));
+    // const userId = 'BOT_ID';
+    // (botWebSocket as any).id = userId;
 
     botWebSocket.on('message', (message: string) => {
       const parsedData = JSON.parse(message);
 
       const command = parseCommand(parsedData);
       const data = parsedData.data ? parseData(parsedData.data) : null;
-      
-      handleCommands(botWebSocket, command, data, userId);
+
+      handleCommands(botWebSocket, command, data, 'BOT_ID');
     });
   });
 

@@ -2,6 +2,7 @@ import { randomUUID as uuidv4 } from 'crypto';
 import { WebSocket, WebSocketServer } from 'ws';
 import { handleCommands } from './commands/commands';
 import { parseCommand, parseData } from './utils/utils';
+import { Command } from './types/command';
 // import { getAllRooms, removeRoomByUserId } from './controllers/roomController';
 // import { removeGameByUserId } from './services/gameService';
 
@@ -37,6 +38,10 @@ wss.on('connection', (ws: WebSocket) => {
 
     const command = parseCommand(parsedData);
     const data = parsedData.data ? parseData(parsedData.data) : null;
+
+    if (command === Command.RegBot) {
+      (ws as any).id = 'BOT_ID';
+    }
 
     handleCommands(ws, command, data, userId);
   });

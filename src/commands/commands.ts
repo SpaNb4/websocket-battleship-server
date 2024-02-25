@@ -24,14 +24,8 @@ import * as gameService from '../services/gameService';
 import * as roomService from '../services/roomService';
 import * as userService from '../services/userService';
 import { Command } from '../types/command';
-import { RequestData } from '../types/request';
-import {
-  isAddUserToRoomData,
-  isAttackData,
-  isPlayerShipsData,
-  isRandomAttackData,
-  isRegistrationData,
-} from '../utils/type-guards';
+import { AttackData, RequestData } from '../types/request';
+import { isAddUserToRoomData, isPlayerShipsData, isRandomAttackData, isRegistrationData } from '../utils/type-guards';
 
 export const handleCommands = (ws: WebSocket, command: Command, data: RequestData, userId: string) => {
   switch (command) {
@@ -41,9 +35,11 @@ export const handleCommands = (ws: WebSocket, command: Command, data: RequestDat
     case Command.CreateRoom:
       handleCreateRoom(userId);
       break;
+
     case Command.AddUserToRoom:
       handleAddUserToRoom(data, userId);
       break;
+
     case Command.AddShips:
       handleAddShips(data, userId);
       break;
@@ -53,7 +49,7 @@ export const handleCommands = (ws: WebSocket, command: Command, data: RequestDat
       break;
 
     case Command.Attack:
-      handleAttack(data, userId);
+      handleAttack(data as AttackData, userId);
       break;
 
     case Command.SinglePlay:
@@ -113,8 +109,8 @@ export const handleRandomAttack = (data: RequestData, userId: string) => {
   }
 };
 
-export const handleAttack = (data: RequestData, userId: string) => {
-  if (isAttackData(data) && isPlayerTurn(userId)) {
+export const handleAttack = (data: AttackData, userId: string) => {
+  if (isPlayerTurn(userId)) {
     attack(data);
     switchTurn(userId);
     checkIfGameEnded(data);
