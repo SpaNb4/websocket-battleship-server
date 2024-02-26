@@ -26,8 +26,11 @@ export const createGame = (userId: string) => {
   const roomUsers = roomWithTwoUsers.roomUsers;
 
   const gameId = uuidv4();
-  const targetedCoordinates = new Set<string>();
-  const players: Player[] = roomUsers.map((user) => ({ userId: user.index, ships: [], targetedCoordinates }));
+  const players: Player[] = roomUsers.map((user) => ({
+    userId: user.index,
+    ships: [],
+    targetedCoordinates: new Set<string>(),
+  }));
 
   const newGame: Game = {
     gameId,

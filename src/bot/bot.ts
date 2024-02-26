@@ -23,7 +23,7 @@ export const createBot = () => {
       const command = parseCommand(parsedData);
       const data = parsedData.data ? parseData(parsedData.data) : null;
 
-      handleBotCommands(botWebSocket, command, data, botId);
+      handleBotCommands(command, data, botId);
     });
   });
 
@@ -38,7 +38,7 @@ export const createBot = () => {
   return { botId, botWebSocket };
 };
 
-export const handleBotCommands = (ws: CustomWebSocket, command: Command, data: RequestData, userId: string) => {
+export const handleBotCommands = (command: Command, data: RequestData, userId: string) => {
   switch (command) {
     case Command.Turn:
       handleAttack(data as AttackData, userId);
