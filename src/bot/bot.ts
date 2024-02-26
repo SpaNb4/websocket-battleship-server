@@ -1,7 +1,8 @@
 import { randomUUID as uuidv4 } from 'crypto';
 import { WebSocket } from 'ws';
-import { handleCommands } from '../commands/commands';
+import { handleAttack } from '../commands/commands';
 import { Command } from '../types/command';
+import { AttackData, RequestData } from '../types/request';
 import { CustomWebSocket } from '../types/websocket';
 import { logReceivedData, parseCommand, parseData, sendResponse } from '../utils/utils';
 
@@ -22,7 +23,7 @@ export const createBot = () => {
       const command = parseCommand(parsedData);
       const data = parsedData.data ? parseData(parsedData.data) : null;
 
-      handleCommands(botWebSocket, command, data, botId);
+      handleBotCommands(botWebSocket, command, data, botId);
     });
   });
 
@@ -35,4 +36,12 @@ export const createBot = () => {
   });
 
   return { botId, botWebSocket };
+};
+
+export const handleBotCommands = (ws: CustomWebSocket, command: Command, data: RequestData, userId: string) => {
+  switch (command) {
+    case Command.Turn:
+      handleAttack(data as AttackData, userId);
+      break;
+  }
 };

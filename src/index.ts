@@ -18,7 +18,7 @@ export const wss = new WebSocketServer({
 wss.on('connection', (ws: CustomWebSocket) => {
   const userId = uuidv4();
 
-  // If it's a bot, set id to it
+  // If it's a bot
   if (ws.protocol) {
     ws.id = ws.protocol;
   } else {

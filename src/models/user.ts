@@ -3,5 +3,4 @@ export interface User {
   name: string;
   hash: string;
   isLoggedIn: boolean;
-  isBot?: boolean;
 }
