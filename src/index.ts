@@ -36,7 +36,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
   ws.on('message', (message: string) => {
     const parsedData = JSON.parse(message);
 
-    logReceivedData(parsedData);
+    logReceivedData(ws, parsedData);
 
     const command = parseCommand(parsedData);
     const data = parsedData.data ? parseData(parsedData.data) : null;

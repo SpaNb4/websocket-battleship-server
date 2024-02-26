@@ -17,6 +17,7 @@ export const broadcastToAll = (clients: Set<CustomWebSocket>, message: unknown) 
       client.send(JSON.stringify(message));
     }
   });
+  console.log('sent to all: ', message);
 };
 
 export interface MessagesForTwoPlayers<T> {
@@ -36,8 +37,10 @@ export const broadcastToAllInGame = <T>(
       if (game?.gameId === gameId) {
         if (client.id === game.players[0].userId) {
           client.send(JSON.stringify(messagesForTwoPlayers.player1));
+          console.log(`sent to player 1 ${client.id}:`, messagesForTwoPlayers.player2);
         } else {
           client.send(JSON.stringify(messagesForTwoPlayers.player2));
+          console.log(`sent to player 2 ${client.id}: `, messagesForTwoPlayers.player2);
         }
       }
     }
@@ -46,8 +49,9 @@ export const broadcastToAllInGame = <T>(
 
 export const sendResponse = (ws: CustomWebSocket, data: unknown) => {
   ws.send(JSON.stringify(data));
+  console.log(`sent to ${ws.id}: `, data);
 };
 
-export const logReceivedData = (data: unknown) => {
-  console.log('received: ', data);
+export const logReceivedData = (ws: CustomWebSocket, data: unknown) => {
+  console.log(`received from ${ws.id}: `, data);
 };
