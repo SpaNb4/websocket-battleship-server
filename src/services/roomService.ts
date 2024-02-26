@@ -67,3 +67,18 @@ export const removeUserFromOwnRoomOnJoin = (roomId: string, userId: string) => {
     }
   });
 };
+
+export const updateRoom = (roomId: string, changes: Partial<Room>) => {
+  const indexForUpdate = db.rooms.findIndex((room) => room.roomId === roomId);
+
+  if (indexForUpdate === -1) {
+    return;
+  }
+
+  const updatedRoom: Room = {
+    ...db.rooms[indexForUpdate],
+    ...changes,
+  };
+
+  db.rooms[indexForUpdate] = updatedRoom;
+};

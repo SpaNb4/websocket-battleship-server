@@ -1,11 +1,15 @@
 import { randomUUID as uuidv4 } from 'crypto';
 import { WebSocketServer } from 'ws';
 import { handleCommands } from './commands/commands';
+import { getAllRooms, removeRoomById } from './controllers/roomController';
+import { addWinner } from './controllers/winnerController';
+import { getEnemyPlayer, getGameByPlayerId, removeGameById } from './services/gameService';
+import { getRoomById, getRoomByUserId, updateRoom } from './services/roomService';
 import { updateUser } from './services/userService';
+import { Command } from './types/command';
+import { FinishResponse } from './types/response';
 import { CustomWebSocket, CustomWebSocketServer } from './types/websocket';
-import { logReceivedData, parseCommand, parseData } from './utils/utils';
-// import { getAllRooms, removeRoomByUserId } from './controllers/roomController';
-// import { removeGameByUserId } from './services/gameService';
+import { MessagesForTwoPlayers, broadcastToAllInGame, logReceivedData, parseCommand, parseData } from './utils/utils';
 
 export const wss = new WebSocketServer({
   port: 3000,
@@ -14,7 +18,7 @@ export const wss = new WebSocketServer({
 wss.on('connection', (ws: CustomWebSocket) => {
   const userId = uuidv4();
 
-  // if it's a bot, set id to it
+  // If it's a bot, set id to it
   if (ws.protocol) {
     ws.id = ws.protocol;
   } else {
@@ -24,20 +28,7 @@ wss.on('connection', (ws: CustomWebSocket) => {
   console.log('connected: ', userId);
 
   ws.on('close', () => {
-    console.log('disconnected: ', userId);
-
-    updateUser(userId, { isLoggedIn: false });
-
-    // // Remove user from room if it's in one?
-    // removeRoomByUserId(userId);
-
-    // // Remove user from game if it's in one?
-    // removeGameByUserId(userId);
-
-    // User who leaves loses the game
-    // addWinner(userId);
-
-    // getAllRooms();
+    handleDisconnect(ws, userId);
   });
 
   ws.on('error', console.error);
@@ -53,3 +44,46 @@ wss.on('connection', (ws: CustomWebSocket) => {
     handleCommands(ws, command, data, userId);
   });
 });
+
+const handleDisconnect = (ws: CustomWebSocket, userId: string) => {
+  console.log('disconnected: ', userId);
+
+  updateUser(userId, { isLoggedIn: false });
+
+  const room = getRoomByUserId(userId);
+
+  if (room) {
+    // Remove user from room if it's in one
+    updateRoom(room.roomId, { roomUsers: room.roomUsers.filter((user) => user.index !== userId) });
+
+    // Check if room is empty and remove it
+    if (getRoomById(room.roomId)?.roomUsers.length === 0) {
+      removeRoomById(room.roomId);
+    }
+  }
+
+  getAllRooms();
+
+  // User who leaves loses the game
+  const game = getGameByPlayerId(userId);
+  const winner = getEnemyPlayer(userId);
+
+  if (winner && game) {
+    const response: MessagesForTwoPlayers<FinishResponse> = {
+      player1: {
+        type: Command.Finish,
+        data: JSON.stringify({ winPlayer: winner.userId }),
+        id: 0,
+      },
+      player2: {
+        type: Command.Finish,
+        data: JSON.stringify({ winPlayer: winner.userId }),
+        id: 0,
+      },
+    };
+
+    broadcastToAllInGame(wss.clients, response, game.gameId);
+    addWinner(winner.userId);
+    removeGameById(game.gameId);
+  }
+};

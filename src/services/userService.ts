@@ -20,7 +20,7 @@ export const updateUser = (userId: string, changes: Partial<User>) => {
     return;
   }
 
-  const updatedUser = {
+  const updatedUser: User = {
     ...db.users[indexForUpdate],
     ...changes,
   };
