@@ -1,5 +1,12 @@
 import { ShipWithoutHealth } from '../models/ship';
 import { User } from '../models/user';
+import { Command } from './command';
+
+export interface Request {
+  type: Command;
+  data: string;
+  id: number;
+}
 
 export type RequestData =
   | RegistrationData

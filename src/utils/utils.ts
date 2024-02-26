@@ -1,15 +1,17 @@
 import { WebSocket } from 'ws';
 import { getGameByPlayerId } from '../services/gameService';
+import { Request } from '../types/request';
+import { CustomWebSocket } from '../types/websocket';
 
-export const parseCommand = (parsedData: any) => {
+export const parseCommand = (parsedData: Request) => {
   return parsedData.type;
 };
 
-export const parseData = (data: any) => {
-  return JSON.parse(data);
+export const parseData = (data: unknown) => {
+  return JSON.parse(data as string);
 };
 
-export const broadcastToAll = (clients: Set<WebSocket>, message: any) => {
+export const broadcastToAll = (clients: Set<CustomWebSocket>, message: unknown) => {
   clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(message));
@@ -23,11 +25,11 @@ export interface MessagesForTwoPlayers<T> {
 }
 
 export const broadcastToAllInGame = <T>(
-  clients: Set<WebSocket>,
+  clients: Set<CustomWebSocket>,
   messagesForTwoPlayers: MessagesForTwoPlayers<T>,
   gameId: string
 ) => {
-  clients.forEach((client: any) => {
+  clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       const game = getGameByPlayerId(client.id);
 
@@ -42,6 +44,10 @@ export const broadcastToAllInGame = <T>(
   });
 };
 
-export const sendResponse = (ws: WebSocket, data: any) => {
+export const sendResponse = (ws: CustomWebSocket, data: unknown) => {
   ws.send(JSON.stringify(data));
+};
+
+export const logReceivedData = (data: unknown) => {
+  console.log('received: ', data);
 };

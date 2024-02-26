@@ -1,23 +1,24 @@
 import { randomUUID as uuidv4 } from 'crypto';
-import { WebSocket, WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import { handleCommands } from './commands/commands';
-import { parseCommand, parseData } from './utils/utils';
-import { getUserById, updateUser } from './services/userService';
+import { updateUser } from './services/userService';
+import { CustomWebSocket, CustomWebSocketServer } from './types/websocket';
+import { logReceivedData, parseCommand, parseData } from './utils/utils';
 // import { getAllRooms, removeRoomByUserId } from './controllers/roomController';
 // import { removeGameByUserId } from './services/gameService';
 
 export const wss = new WebSocketServer({
   port: 3000,
-});
+}) as CustomWebSocketServer;
 
-wss.on('connection', (ws: WebSocket) => {
+wss.on('connection', (ws: CustomWebSocket) => {
   const userId = uuidv4();
 
-  // if it's a bot set the id to bot
+  // if it's a bot, set id to it
   if (ws.protocol) {
-    (ws as any).id = ws.protocol;
+    ws.id = ws.protocol;
   } else {
-    (ws as any).id = userId;
+    ws.id = userId;
   }
 
   console.log('connected: ', userId);
@@ -27,10 +28,10 @@ wss.on('connection', (ws: WebSocket) => {
 
     updateUser(userId, { isLoggedIn: false });
 
-    // // Remove user from room if it's in one
+    // // Remove user from room if it's in one?
     // removeRoomByUserId(userId);
 
-    // // Remove user from game if it's in one
+    // // Remove user from game if it's in one?
     // removeGameByUserId(userId);
 
     // User who leaves loses the game
@@ -44,8 +45,7 @@ wss.on('connection', (ws: WebSocket) => {
   ws.on('message', (message: string) => {
     const parsedData = JSON.parse(message);
 
-    // logReceivedData(rawData)
-    // console.log('received: ', parsedData);
+    logReceivedData(parsedData);
 
     const command = parseCommand(parsedData);
     const data = parsedData.data ? parseData(parsedData.data) : null;

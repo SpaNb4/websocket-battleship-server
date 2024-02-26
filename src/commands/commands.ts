@@ -1,4 +1,3 @@
-import { WebSocket } from 'ws';
 import { createBot } from '../bot/bot';
 import { getPredefinedField } from '../bot/fields';
 import {
@@ -25,9 +24,10 @@ import * as roomService from '../services/roomService';
 import * as userService from '../services/userService';
 import { Command } from '../types/command';
 import { AttackData, RequestData } from '../types/request';
+import { CustomWebSocket } from '../types/websocket';
 import { isAddUserToRoomData, isPlayerShipsData, isRandomAttackData, isRegistrationData } from '../utils/type-guards';
 
-export const handleCommands = (ws: WebSocket, command: Command, data: RequestData, userId: string) => {
+export const handleCommands = (ws: CustomWebSocket, command: Command, data: RequestData, userId: string) => {
   switch (command) {
     case Command.Reg:
       handleRegistration(ws, data, userId);
@@ -58,7 +58,7 @@ export const handleCommands = (ws: WebSocket, command: Command, data: RequestDat
   }
 };
 
-export const handleRegistration = (ws: WebSocket, data: RequestData, userId: string) => {
+export const handleRegistration = (ws: CustomWebSocket, data: RequestData, userId: string) => {
   if (isRegistrationData(data)) {
     registerUser(ws, data, userId);
 
