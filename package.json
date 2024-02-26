@@ -7,8 +7,7 @@
     "start": "nodemon src/index.ts",
     "prettier:check": "prettier --check src/**/*.ts",
     "prettier:write": "prettier --write src/**/*.ts",
-    "lint": "eslint . --ext .ts",
-    "test": "jest"
+    "lint": "eslint . --ext .ts"
   },
   "author": "Dzmitry Yarmoshkin",
   "license": "ISC",
